@@ -60,14 +60,15 @@ models:
   # Default chat/completion model
   chat:
     provider: "ollama"  # ollama, openai, anthropic, openrouter, local
-    model: "llama3.1:8b"
+    model: "llama3.2:3b"
     context_length: 8192
     temperature: 0.7
-    max_tokens: 4096
+    max_tokens: 2048
     
     # Provider-specific settings
     ollama:
       base_url: "${OLLAMA_HOST:-http://localhost:11434}"
+      model: "llama3.2:3b"
     openai:
       base_url: "https://api.openai.com/v1"
       api_key: "${OPENAI_API_KEY:-}"

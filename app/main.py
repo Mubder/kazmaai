@@ -28,8 +28,8 @@ from core.events import EventBus, Event, EventType, agent_response_event
 from core.localization import get_ui_string, is_arabic_text
 from core.llm import LLMProvider
 from projects.workspace import ProjectWorkspace
-from memory.manager import MemoryManager
-from main import KazmaAI
+from memory.manager import MemoryManager, SelfImprovementEngine
+
 
 class KazmaAI:
     """

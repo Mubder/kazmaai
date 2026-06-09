@@ -79,6 +79,26 @@ class KazmaAI:
         # Initialize LLM provider
         self.llm = LLMProvider(self.storage.config.get('models', {}))
         
+        # Initialize RAG engine (Phase 4)
+        from memory.vector import VectorMemoryManager
+        from rag.engine import RAGEngine
+        
+        self.vector_memory = VectorMemoryManager(
+            config=self.storage.config.get('models', {}).get('embedding', {}),
+            data_dir=self.storage.data_dir / "vectors",
+        )
+        
+        self.rag = RAGEngine(
+            llm_provider=self.llm,
+            vector_memory=self.vector_memory,
+            config=self.storage.config.get('rag', {
+                'chunk_size': 512,
+                'chunk_overlap': 50,
+                'top_k': 5,
+                'min_relevance': 0.5,
+            }),
+        )
+        
         # Initialize self-improvement engine
         from memory.manager import SelfImprovementEngine
         self.improvement_engine = SelfImprovementEngine(
@@ -187,14 +207,15 @@ class KazmaAI:
     # USER INTERFACE METHODS
     # =========================================================================
     
-    async def chat(self, message: str, conversation_id: str = "default") -> str:
+    async def chat(self, message: str, conversation_id: str = "default", use_rag: bool = True) -> str:
         """
         Process a user message and return agent response.
         
         Args:
             message: User message
             conversation_id: Conversation identifier
-            
+            use_rag: Whether to use RAG for context-aware responses
+        
         Returns:
             Agent response
         """
@@ -212,10 +233,19 @@ class KazmaAI:
             priority=10,
         ))
         
-        # Process through LLM
+        # Process through RAG + LLM
         try:
-            response_text = await self.llm.chat(message, conversation_id)
-            response = response_text.content
+            if use_rag:
+                # Use RAG for context-aware response
+                response = await self.rag.generate_response(
+                    query=message,
+                    conversation_id=conversation_id,
+                    use_rag=True,
+                )
+            else:
+                # Direct LLM query
+                response_text = await self.llm.chat(message, conversation_id)
+                response = response_text.content
         except Exception as e:
             # Fallback response
             if language == 'ar':

@@ -1,0 +1,393 @@
+# =============================================================================
+# KazmaAI - Unified Configuration
+# =============================================================================
+# This file is the single source of truth for all agent configuration.
+# The agent is bootstrappable: move the entire directory to any system,
+# and it will self-initialize based on this configuration.
+#
+# PATHS: All paths are RELATIVE to the agent root (where .agent_root exists).
+# ENV VARS: Use ${VAR_NAME} or ${VAR_NAME:-default} for interpolation.
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# Agent Identity
+# -------------------------------------------------------------------------
+agent:
+  name: "kazmaai"
+  version: "1.0.0"
+  description: "Cross-platform AI agent with portable persistence"
+
+# -------------------------------------------------------------------------
+# Storage Configuration
+# -------------------------------------------------------------------------
+storage:
+  # Primary metadata backend (SQLite recommended for portability)
+  backend: "sqlite"
+  
+  sqlite:
+    path: "data/storage.db"
+    journal_mode: "WAL"  # Write-Ahead Logging for concurrent reads
+    timeout: 30
+    pool_size: 10
+  
+  # Vector database for embeddings and semantic memory
+  vector_backend: "chromadb"  # or "qdrant", "milvus"
+  
+  chromadb:
+    path: "data/memory/vectors"
+    anonymized_telemetry: false
+  
+  # Conversation history backend
+  conversation_backend: "json"  # or "sqlite"
+  conversation_path: "data/memory/conversations"
+
+# -------------------------------------------------------------------------
+# Path Configuration (All relative to agent root)
+# -------------------------------------------------------------------------
+paths:
+  data: "data"
+  logs: "logs"
+  backups: "data/backups"
+  cache: "data/cache"
+  projects: "data/projects"
+  models: "models"
+  config: "config"
+
+# -------------------------------------------------------------------------
+# Model Configuration
+# -------------------------------------------------------------------------
+models:
+  # Default chat/completion model
+  chat:
+    provider: "ollama"  # ollama, openai, anthropic, openrouter, local
+    model: "llama3.1:8b"
+    context_length: 8192
+    temperature: 0.7
+    max_tokens: 4096
+    
+    # Provider-specific settings
+    ollama:
+      base_url: "${OLLAMA_HOST:-http://localhost:11434}"
+    openai:
+      base_url: "https://api.openai.com/v1"
+      api_key: "${OPENAI_API_KEY:-}"
+    anthropic:
+      base_url: "https://api.anthropic.com/v1"
+      api_key: "${ANTHROPIC_API_KEY:-}"
+    openrouter:
+      base_url: "https://openrouter.ai/api/v1"
+      api_key: "${OPENROUTER_API_KEY:-}"
+    local:
+      base_url: "${LOCAL_API_URL:-http://localhost:1234/v1}"
+  
+  # Embedding model for vector store
+  embedding:
+    provider: "ollama"
+    model: "nomic-embed-text"
+    dimensions: 768
+    
+    ollama:
+      base_url: "${OLLAMA_HOST:-http://localhost:11434}"
+    openai:
+      base_url: "https://api.openai.com/v1"
+      api_key: "${OPENAI_API_KEY:-}"
+      model: "text-embedding-3-small"
+  
+  # Vision model (optional)
+  vision:
+    enabled: false
+    provider: "ollama"
+    model: "llava:7b"
+  
+  # Image generation (Phase 2 - Create module)
+  image:
+    provider: "comfyui"  # comfyui, stable-diffusion, dall-e
+    comfyui:
+      base_url: "${COMFYUI_URL:-http://127.0.0.1:8188}"
+    dall-e:
+      api_key: "${OPENAI_API_KEY:-}"
+      model: "dall-e-3"
+  
+  # Video generation (Phase 2)
+  video:
+    provider: "comfyui"
+    comfyui:
+      base_url: "${COMFYUI_URL:-http://127.0.0.1:8188}"
+
+# -------------------------------------------------------------------------
+# API Keys
+# -------------------------------------------------------------------------
+# SECURITY: Never commit actual keys. Use environment variables or .env file.
+# Values here are interpolated from environment: ${VAR_NAME:-default}
+# -------------------------------------------------------------------------
+api_keys:
+  openai: "${OPENAI_API_KEY:-}"
+  anthropic: "${ANTHROPIC_API_KEY:-}"
+  huggingface: "${HF_API_KEY:-}"
+  openrouter: "${OPENROUTER_API_KEY:-}"
+  nvidia: "${NVIDIA_API_KEY:-}"
+  
+  # Telegram bot
+  telegram_bot: "${TELEGRAM_BOT_TOKEN:-}"
+  
+  # Local services (no key needed)
+  ollama: ""
+  comfyui: ""
+
+# -------------------------------------------------------------------------
+# Telegram Integration (Phase 2)
+# -------------------------------------------------------------------------
+telegram:
+  enabled: false
+  bot_token: "${TELEGRAM_BOT_TOKEN:-}"
+  
+  # Users allowed to interact with the bot (Telegram user IDs)
+  # Leave empty to allow all, or specify list: [123456789, 987654321]
+  allowed_users: []
+  
+  # Chat ID for home channel (where agent sends unprompted updates)
+  home_chat_id: "${TELEGRAM_HOME_CHAT_ID:-}"
+  
+  # Bot behavior
+  max_message_length: 4096
+  enable_commands: true
+  command_prefix: "/"
+  
+  # Webhook mode (optional - defaults to polling)
+  webhook:
+    enabled: false
+    url: ""
+    listen_port: 8443
+
+# -------------------------------------------------------------------------
+# Web Interface (Phase 2)
+# -------------------------------------------------------------------------
+web:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8080
+  
+  # Authentication
+  auth:
+    enabled: false
+    username: "${WEB_ADMIN_USER:-admin}"
+    password: "${WEB_ADMIN_PASS:-}"  # Consider hash instead of plaintext
+  
+  # CORS settings
+  cors:
+    enabled: true
+    origins: ["*"]
+  
+  # Static files
+  static_path: "app/web/static"
+  templates_path: "app/web/templates"
+
+# -------------------------------------------------------------------------
+# Logging Configuration
+# -------------------------------------------------------------------------
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # File logging
+  file: "logs/orchestrator.log"
+  max_size_mb: 50
+  backup_count: 5
+  encoding: "utf-8"
+  
+  # Console logging
+  console_output: true
+  console_colors: true
+  
+  # Log rotation
+  rotate: "daily"  # daily, weekly, monthly, size
+
+# -------------------------------------------------------------------------
+# Backup & Snapshot Configuration
+# -------------------------------------------------------------------------
+backup:
+  # Automatic backup on graceful shutdown
+  auto_backup: true
+  
+  # What to include in snapshots
+  include:
+    - "data/memory"
+    - "data/projects"
+    - "config/config.yaml"
+    - "config/project_templates"
+  
+  # What to exclude from snapshots
+  exclude:
+    - "data/cache/*"
+    - "data/storage.db-wal"
+    - "data/storage.db-shm"
+    - "logs/*.log"
+    - "**/__pycache__"
+    - "**/*.pyc"
+    - "**/*.pyo"
+    - ".git/*"
+  
+  # Retention policy
+  retention:
+    max_backups: 10
+    max_age_days: 30
+    min_free_space_gb: 5
+  
+  # Compression
+  compression: "zip"  # zip, tar.gz
+  compress_level: 6
+
+# -------------------------------------------------------------------------
+# Project Management (Phase 2)
+# -------------------------------------------------------------------------
+projects:
+  # Default project template name
+  default_template: "default"
+  templates_path: "config/project_templates"
+  
+  # Auto-save interval in seconds
+  auto_save_interval: 300
+  
+  # Maximum concurrent active projects
+  max_active: 10
+  
+  # Project state tracking
+  track_file_changes: true
+  track_task_history: true
+  enable_summaries: true
+
+# -------------------------------------------------------------------------
+# Memory & Self-Improvement (Phase 2)
+# -------------------------------------------------------------------------
+memory:
+  # Enable event-driven memory updates
+  enabled: true
+  
+  # Event loop settings
+  event_loop_interval: 60  # seconds between memory processing
+  
+  # Summarization settings
+  summarize_after_messages: 10
+  summary_model: "${models.chat.model}"
+  
+  # Self-improvement (operational parameter updates)
+  self_improvement:
+    enabled: false
+    review_interval_hours: 24
+    max_adjustments_per_review: 5
+
+# -------------------------------------------------------------------------
+# Event Bus Configuration (Phase 2)
+# -------------------------------------------------------------------------
+events:
+  enabled: true
+  
+  # Event types to track
+  track:
+    - "user_message"
+    - "agent_response"
+    - "tool_call"
+    - "project_change"
+    - "memory_update"
+    - "error"
+  
+  # Event storage
+  storage: "sqlite"  # sqlite, memory
+  max_events_stored: 10000
+  
+  # Event handlers
+  handlers:
+    log_events: true
+    trigger_memory_updates: true
+    trigger_notifications: false
+
+# -------------------------------------------------------------------------
+# Performance Tuning
+# -------------------------------------------------------------------------
+performance:
+  # Batch sizes
+  vector_batch_size: 100
+  embedding_batch_size: 32
+  
+  # Caching
+  cache_enabled: true
+  cache_max_size: 1000
+  cache_ttl_seconds: 3600
+  
+  # Database connection pooling
+  db_pool_size: 10
+  db_max_overflow: 20
+  
+  # Async settings
+  async_enabled: true
+  max_concurrent_tasks: 10
+
+# -------------------------------------------------------------------------
+# Feature Flags
+# -------------------------------------------------------------------------
+features:
+  enable_telemetry: false
+  enable_auto_update: false
+  enable_experiment_tracking: true
+  enable_conversation_compression: true
+  enable_code_execution: false
+  enable_web_search: false
+  enable_file_operations: true
+
+# -------------------------------------------------------------------------
+# Plugin System (Optional - Phase 2+)
+# -------------------------------------------------------------------------
+plugins:
+  enabled: []
+  # enabled:
+  #   - "web_search"
+  #   - "file_ops"
+  #   - "code_execution"
+  #   - "github_integration"
+  
+  # Plugin-specific configuration
+  configs:
+    web_search:
+      engine: "duckduckgo"  # duckduckgo, google, bing
+      max_results: 10
+    code_execution:
+      timeout_seconds: 30
+      sandbox: true
+      allowed_languages: ["python", "bash", "javascript"]
+    github_integration:
+      token: "${GITHUB_TOKEN:-}"
+      default_repo: ""
+
+# -------------------------------------------------------------------------
+# Development Settings (Ignored in production deployments)
+# -------------------------------------------------------------------------
+development:
+  debug_mode: false
+  hot_reload: false
+  mock_external_apis: false
+  verbose_errors: true
+  
+  # Test fixtures
+  test_data_path: "tests/fixtures"
+  
+  # Profiling
+  enable_profiling: false
+  profile_output: "logs/profile.stats"
+
+# -------------------------------------------------------------------------
+# Security Settings
+# -------------------------------------------------------------------------
+security:
+  # Secret key for session signing (generate with: python -c "import secrets; print(secrets.token_hex(32))")
+  secret_key: "${AGENT_SECRET_KEY:-}"
+  
+  # Allowed file operation paths (relative to agent root)
+  allowed_paths:
+    - "data/projects"
+    - "data/memory"
+  
+  # Rate limiting (if web interface enabled)
+  rate_limit:
+    enabled: false
+    requests_per_minute: 60

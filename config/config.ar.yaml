@@ -1,0 +1,401 @@
+# =============================================================================
+# KazmaAI - Unified Configuration (Arabic / العربية)
+# =============================================================================
+# هذا الملف هو المصدر الوحيد لإعدادات الوكيل. الوكيل قابل للنقل بالكامل:
+# انقل المجلد إلى أي نظام وسيعمل تلقائياً بناءً على هذا الإعداد.
+#
+# المسارات: جميع المسارات نسبية بالنسبة لجذر الوكيل (حيث يوجد .agent_root)
+# متغيرات البيئة: استخدم ${VAR_NAME} أو ${VAR_NAME:-default} للاستبدال التلقائي
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# هوية الوكيل (Agent Identity)
+# -------------------------------------------------------------------------
+agent:
+  name: "kazmaai"
+  version: "1.0.0"
+  description: "وكيل ذكاء اصطناعي عبر المنصات مع ذاكرة محمولة"
+
+# -------------------------------------------------------------------------
+# إعدادات التخزين (Storage Configuration)
+# -------------------------------------------------------------------------
+storage:
+  # محرك التخزين الأساسي (SQLite موصى به للتنقل)
+  backend: "sqlite"
+  
+  sqlite:
+    path: "data/storage.db"
+    journal_mode: "WAL"  # وضع السجل المسبق للقراءة المتزامنة
+    timeout: 30
+    pool_size: 10
+  
+  # قاعدة البيانات المتجهة للذاكرة الدلالية
+  vector_backend: "chromadb"  # أو "qdrant" أو "milvus"
+  
+  chromadb:
+    path: "data/memory/vectors"
+    anonymized_telemetry: false
+  
+  # محرك سجل المحادثات
+  conversation_backend: "json"  # أو "sqlite"
+  conversation_path: "data/memory/conversations"
+
+# -------------------------------------------------------------------------
+# إعدادات المسارات (جميعها نسبية لجذر الوكيل)
+# -------------------------------------------------------------------------
+paths:
+  data: "data"
+  logs: "logs"
+  backups: "data/backups"
+  cache: "data/cache"
+  projects: "data/projects"
+  models: "models"
+  config: "config"
+
+# -------------------------------------------------------------------------
+# إعدادات النماذج (Model Configuration)
+# -------------------------------------------------------------------------
+models:
+  # نموذج المحادثة الافتراضي
+  chat:
+    provider: "ollama"  # ollama, openai, anthropic, openrouter, local
+    model: "llama3.1:8b"  # للعربية: jais:7b, arat5-large
+    context_length: 8192
+    temperature: 0.7
+    max_tokens: 4096
+    
+    # إعدادات مزودي الخدمة
+    ollama:
+      base_url: "${OLLAMA_HOST:-http://localhost:11434}"
+    openai:
+      base_url: "https://api.openai.com/v1"
+      api_key: "${OPENAI_API_KEY:-}"
+    anthropic:
+      base_url: "https://api.anthropic.com/v1"
+      api_key: "${ANTHROPIC_API_KEY:-}"
+    openrouter:
+      base_url: "https://openrouter.ai/api/v1"
+      api_key: "${OPENROUTER_API_KEY:-}"
+    local:
+      base_url: "${LOCAL_API_URL:-http://localhost:1234/v1}"
+  
+  # نموذج التضمين (Embeddings) للذاكرة المتجهة
+  embedding:
+    provider: "ollama"
+    model: "nomic-embed-text"  # للعربية: AraEmbeddings
+    dimensions: 768
+    
+    ollama:
+      base_url: "${OLLAMA_HOST:-http://localhost:11434}"
+    openai:
+      base_url: "https://api.openai.com/v1"
+      api_key: "${OPENAI_API_KEY:-}"
+      model: "text-embedding-3-small"
+  
+  # نموذج الرؤية الحاسوبية (اختياري)
+  vision:
+    enabled: false
+    provider: "ollama"
+    model: "llava:7b"
+  
+  # توليد الصور (المرحلة 2 - وحدة الإبداع)
+  image:
+    provider: "comfyui"  # comfyui, stable-diffusion, dall-e
+    comfyui:
+      base_url: "${COMFYUI_URL:-http://127.0.0.1:8188}"
+    dall-e:
+      api_key: "${OPENAI_API_KEY:-}"
+      model: "dall-e-3"
+  
+  # توليد الفيديو (المرحلة 2)
+  video:
+    provider: "comfyui"
+    comfyui:
+      base_url: "${COMFYUI_URL:-http://127.0.0.1:8188}"
+
+# -------------------------------------------------------------------------
+# مفاتيح API
+# -------------------------------------------------------------------------
+# أمان: لا تضع المفاتيح الفعلية هنا. استخدم متغيرات البيئة أو ملف .env
+# القيم تستبدل تلقائياً من البيئة: ${VAR_NAME:-default}
+# -------------------------------------------------------------------------
+api_keys:
+  openai: "${OPENAI_API_KEY:-}"
+  anthropic: "${ANTHROPIC_API_KEY:-}"
+  huggingface: "${HF_API_KEY:-}"
+  openrouter: "${OPENROUTER_API_KEY:-}"
+  nvidia: "${NVIDIA_API_KEY:-}"
+  
+  # بوت تليجرام
+  telegram_bot: "${TELEGRAM_BOT_TOKEN:-}"
+  
+  # الخدمات المحلية (لا تحتاج مفتاح)
+  ollama: ""
+  comfyui: ""
+
+# -------------------------------------------------------------------------
+# التكامل مع تليجرام (المرحلة 2)
+# -------------------------------------------------------------------------
+telegram:
+  enabled: false
+  bot_token: "${TELEGRAM_BOT_TOKEN:-}"
+  
+  # المستخدمون المسموح لهم (معرفات تليجرام)
+  # اتركه فارغاً للسماح للجميع، أو حدد قائمة: [123456789, 987654321]
+  allowed_users: []
+  
+  # معرف القناة الرئيسية (للإشعارات التلقائية)
+  home_chat_id: "${TELEGRAM_HOME_CHAT_ID:-}"
+  
+  # إعدادات البوت
+  max_message_length: 4096
+  enable_commands: true
+  command_prefix: "/"
+  
+  # وضع الويب هوك (اختياري - الافتراضي polling)
+  webhook:
+    enabled: false
+    url: ""
+    listen_port: 8443
+  
+  # localize: Arabic language support
+  language: "${AGENT_LANGUAGE:-ar}"
+  language_fallback: "${AGENT_LANGUAGE_FALLBACK:-en}"
+
+# -------------------------------------------------------------------------
+# واجهة الويب (المرحلة 2)
+# -------------------------------------------------------------------------
+web:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8080
+  
+  # المصادقة
+  auth:
+    enabled: false
+    username: "${WEB_ADMIN_USER:-admin}"
+    password: "${WEB_ADMIN_PASS:-}"
+  
+  # CORS
+  cors:
+    enabled: true
+    origins: ["*"]
+  
+  # الملفات الثابتة
+  static_path: "app/web/static"
+  templates_path: "app/web/templates"
+  
+  # Localization: RTL support for Arabic
+  rtl_enabled: true
+  default_language: "${AGENT_LANGUAGE:-ar}"
+
+# -------------------------------------------------------------------------
+# إعدادات السجلات (Logging Configuration)
+# -------------------------------------------------------------------------
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # سجل الملف
+  file: "logs/orchestrator.log"
+  max_size_mb: 50
+  backup_count: 5
+  encoding: "utf-8"  # مهم للعربية!
+  
+  # سجل وحدة التحكم
+  console_output: true
+  console_colors: true
+  
+  # تدوير السجلات
+  rotate: "daily"  # daily, weekly, monthly, size
+
+# -------------------------------------------------------------------------
+# النسخ الاحتياطي واللقطات (Backup & Snapshot)
+# -------------------------------------------------------------------------
+backup:
+  # نسخ احتياطي تلقائي عند الإغلاق السليم
+  auto_backup: true
+  
+  # ما يجب تضمينه في اللقطات
+  include:
+    - "data/memory"
+    - "data/projects"
+    - "config/config.yaml"
+    - "config/project_templates"
+  
+  # ما يجب استبعاده
+  exclude:
+    - "data/cache/*"
+    - "data/storage.db-wal"
+    - "data/storage.db-shm"
+    - "logs/*.log"
+    - "**/__pycache__"
+    - "**/*.pyc"
+    - "**/*.pyo"
+    - ".git/*"
+  
+  # سياسة الاحتفاظ
+  retention:
+    max_backups: 10
+    max_age_days: 30
+    min_free_space_gb: 5
+  
+  # الضغط
+  compression: "zip"  # zip, tar.gz
+  compress_level: 6
+
+# -------------------------------------------------------------------------
+# إدارة المشاريع (المرحلة 2)
+# -------------------------------------------------------------------------
+projects:
+  # قالب المشروع الافتراضي
+  default_template: "default"
+  templates_path: "config/project_templates"
+  
+  # فاصل الحفظ التلقائي (ثواني)
+  auto_save_interval: 300
+  
+  # الحد الأقصى للمشاريع النشطة
+  max_active: 10
+  
+  # تتبع حالة المشروع
+  track_file_changes: true
+  track_task_history: true
+  enable_summaries: true
+
+# -------------------------------------------------------------------------
+# الذاكرة والتحسين الذاتي (المرحلة 2)
+# -------------------------------------------------------------------------
+memory:
+  # تمكين تحديثات الذاكرة المدفوعة بالأحداث
+  enabled: true
+  
+  # إعدادات حلقة الأحداث
+  event_loop_interval: 60  # ثواني بين معالجة الذاكرة
+  
+  # إعدادات التلخيص
+  summarize_after_messages: 10
+  summary_model: "${models.chat.model}"
+  
+  # التحسين الذاتي (تحديث المعاملات التشغيلية)
+  self_improvement:
+    enabled: false
+    review_interval_hours: 24
+    max_adjustments_per_review: 5
+
+# -------------------------------------------------------------------------
+# إعدادات ناقل الأحداث (Event Bus - المرحلة 2)
+# -------------------------------------------------------------------------
+events:
+  enabled: true
+  
+  # أنواع الأحداث للتتبع
+  track:
+    - "user_message"
+    - "agent_response"
+    - "tool_call"
+    - "project_change"
+    - "memory_update"
+    - "error"
+  
+  # تخزين الأحداث
+  storage: "sqlite"  # sqlite, memory
+  max_events_stored: 10000
+  
+  # معالجات الأحداث
+  handlers:
+    log_events: true
+    trigger_memory_updates: true
+    trigger_notifications: false
+
+# -------------------------------------------------------------------------
+# ضبط الأداء (Performance Tuning)
+# -------------------------------------------------------------------------
+performance:
+  # أحجام الدُفعات
+  vector_batch_size: 100
+  embedding_batch_size: 32
+  
+  # التخزين المؤقت
+  cache_enabled: true
+  cache_max_size: 1000
+  cache_ttl_seconds: 3600
+  
+  # تجميع اتصالات قاعدة البيانات
+  db_pool_size: 10
+  db_max_overflow: 20
+  
+  # الإعدادات غير المتزامنة
+  async_enabled: true
+  max_concurrent_tasks: 10
+
+# -------------------------------------------------------------------------
+# أعلام الميزات (Feature Flags)
+# -------------------------------------------------------------------------
+features:
+  enable_telemetry: false
+  enable_auto_update: false
+  enable_experiment_tracking: true
+  enable_conversation_compression: true
+  enable_code_execution: false
+  enable_web_search: false
+  enable_file_operations: true
+
+# -------------------------------------------------------------------------
+# نظام الإضافات (اختياري - المرحلة 2+)
+# -------------------------------------------------------------------------
+plugins:
+  enabled: []
+  # enabled:
+  #   - "web_search"
+  #   - "file_ops"
+  #   - "code_execution"
+  #   - "github_integration"
+  
+  # إعدادات خاصة بالإضافات
+  configs:
+    web_search:
+      engine: "duckduckgo"  # duckduckgo, google, bing
+      max_results: 10
+    code_execution:
+      timeout_seconds: 30
+      sandbox: true
+      allowed_languages: ["python", "bash", "javascript"]
+    github_integration:
+      token: "${GITHUB_TOKEN:-}"
+      default_repo: ""
+
+# -------------------------------------------------------------------------
+# إعدادات التطوير (تُهمل في بيئات الإنتاج)
+# -------------------------------------------------------------------------
+development:
+  debug_mode: false
+  hot_reload: false
+  mock_external_apis: false
+  verbose_errors: true
+  
+  # بيانات الاختبار
+  test_data_path: "tests/fixtures"
+  
+  # التنميط (Profiling)
+  enable_profiling: false
+  profile_output: "logs/profile.stats"
+
+# -------------------------------------------------------------------------
+# إعدادات الأمان (Security Settings)
+# -------------------------------------------------------------------------
+security:
+  # مفتاح سري لتوقيع الجلسات
+  # ولّده بـ: python -c "import secrets; print(secrets.token_hex(32))"
+  secret_key: "${AGENT_SECRET_KEY:-}"
+  
+  # مسارات عمليات الملفات المسموحة (نسبية لجذر الوكيل)
+  allowed_paths:
+    - "data/projects"
+    - "data/memory"
+  
+  # تحديد المعدل (إذا كانت واجهة الويب مفعلة)
+  rate_limit:
+    enabled: false
+    requests_per_minute: 60

@@ -1,0 +1,8 @@
+# KazmaAI - Agent Root Marker
+# This file marks the root of the agent installation.
+# The agent uses this file for self-discovery when moved to new systems.
+# 
+# Do not delete or move this file.
+# 
+# Created: 2026-06-09
+# Version: 1.0.0

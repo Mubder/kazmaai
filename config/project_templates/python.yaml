@@ -1,0 +1,90 @@
+# Python Project Template / قالب مشروع بايثون
+# KazmaAI - Python Development Template
+
+name: python-project
+description: Python project template with testing, linting, and packaging
+description_ar: قالب مشروع بايثون مع الاختبار والتنسيق والتغليف
+
+structure:
+  - name: src/{{project_name}}
+    type: directory
+    description: Main source code
+    files:
+      - __init__.py
+      - main.py
+  
+  - name: tests
+    type: directory
+    description: Unit tests
+    files:
+      - __init__.py
+      - test_main.py
+  
+  - name: docs
+    type: directory
+    description: Documentation
+    files:
+      - README.md
+  
+  - name: pyproject.toml
+    type: file
+    description: Python project configuration (PEP 621)
+  
+  - name: requirements.txt
+    type: file
+    description: Dependencies
+  
+  - name: requirements-dev.txt
+    type: file
+    description: Development dependencies
+  
+  - name: .python-version
+    type: file
+    description: Python version (for pyenv)
+  
+  - name: Makefile
+    type: file
+    description: Build commands
+  
+  - name: .pre-commit-config.yaml
+    type: file
+    description: Pre-commit hooks
+  
+  - name: pytest.ini
+    type: file
+    description: Pytest configuration
+
+dev_tools:
+  - pytest: Unit testing
+  - black: Code formatting
+  - ruff: Linting
+  - mypy: Type checking
+  - pre-commit: Git hooks
+
+commands:
+  install: pip install -e ".[dev]"
+  test: pytest tests/
+  lint: ruff check src/
+  format: black src/
+  typecheck: mypy src/
+
+best_practices:
+  - Use type hints everywhere / استخدم تلميحات الأنواع في كل مكان
+  - Write tests first (TDD) / اكتب الاختبارات أولاً
+  - Keep functions small and focused / اجعل الدوال صغيرة ومركزة
+  - Document public APIs / وثّق الـ APIs العامة
+  - Use virtual environments / استخدم البيئات الافتراضية
+
+github_actions:
+  - name: CI
+    on: [push, pull_request]
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+          - run: pip install -r requirements-dev.txt
+          - run: pytest
+          - run: ruff check
+          - run: black --check

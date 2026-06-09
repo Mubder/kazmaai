@@ -1,0 +1,109 @@
+# Web Project Template / قالب مشروع ويب
+# KazmaAI - Full-Stack Web Development Template
+
+name: web-project
+description: Modern web app with FastAPI backend + HTMX frontend
+description_ar: تطبيق ويب حديث مع FastAPI و HTMX
+
+structure:
+  - name: app
+    type: directory
+    description: Backend application
+    files:
+      - main.py
+      - config.py
+      - database.py
+      - models.py
+      - routers/
+        - __init__.py
+        - api.py
+      - templates/
+        - base.html
+        - index.html
+      - static/
+        - css/
+          - style.css
+        - js/
+          - app.js
+  
+  - name: frontend
+    type: directory
+    description: Frontend assets (if separate)
+  
+  - name: tests
+    type: directory
+    description: Backend tests
+    files:
+      - test_api.py
+  
+  - name: alembic
+    type: directory
+    description: Database migrations
+  
+  - name: .env
+    type: file
+    description: Environment variables (gitignored)
+  
+  - name: .env.example
+    type: file
+    description: Example environment file
+  
+  - name: requirements.txt
+    type: file
+    description: Python dependencies
+  
+  - name: package.json
+    type: file
+    description: Frontend dependencies (if using npm)
+  
+  - name: Dockerfile
+    type: file
+    description: Container definition
+  
+  - name: docker-compose.yml
+    type: file
+    description: Multi-container setup
+
+tech_stack:
+  backend:
+    - FastAPI: Modern async web framework
+    - SQLAlchemy: ORM for database
+    - Alembic: Database migrations
+    - Pydantic: Data validation
+  frontend:
+    - HTMX: Dynamic HTML without JavaScript
+    - Tailwind CSS: Utility-first CSS
+    - Alpine.js: Minimal JavaScript (optional)
+  database:
+    - PostgreSQL: Production database
+    - SQLite: Development database
+
+dev_tools:
+  - pytest: Testing
+  - httpx: Async HTTP testing
+  - black: Formatting
+  - ruff: Linting
+  - pre-commit: Git hooks
+
+commands:
+  dev: uvicorn app.main:app --reload
+  migrate: alembic upgrade head
+  test: pytest tests/
+  lint: ruff check app/
+  docker-up: docker-compose up -d
+  docker-down: docker-compose down
+
+boilerplate_features:
+  - JWT authentication / مصادقة JWT
+  - Role-based access control / التحكم بالوصول حسب الدور
+  - Rate limiting / تحديد المعدل
+  - CORS configuration / إعداد CORS
+  - Health checks / فحوصات الحالة
+  - Structured logging / تسجيل منظم
+  - Error handling middleware / وسيط معالجة الأخطاء
+
+deployment:
+  - Docker / Docker Compose
+  - Cloud: Render, Railway, Fly.io
+  - Traditional: Nginx + Gunicorn + systemd
+  - Serverless: Vercel (Frontend), Cloud Run (Backend)

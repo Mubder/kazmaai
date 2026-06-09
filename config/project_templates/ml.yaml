@@ -1,0 +1,166 @@
+# ML Project Template / قالب مشروع تعلم آلي
+# KazmaAI - Machine Learning / Deep Learning Template
+
+name: ml-project
+description: ML/DL project with training, evaluation, and deployment
+description_ar: مشروع تعلم آلي مع التدريب والتقييم والنشر
+
+structure:
+  - name: src
+    type: directory
+    description: Source code
+    files:
+      - __init__.py
+      - data/
+        - __init__.py
+        - dataloaders.py
+        - preprocessing.py
+        - augmentation.py
+      - models/
+        - __init__.py
+        - architectures.py
+      - training/
+        - __init__.py
+        - train.py
+        - losses.py
+        - metrics.py
+      - evaluation/
+        - __init__.py
+        - evaluate.py
+      - inference/
+        - __init__.py
+        - predict.py
+  
+  - name: notebooks
+    type: directory
+    description: Jupyter notebooks for exploration
+    files:
+      - 01-exploratory-analysis.ipynb
+      - 02-model-development.ipynb
+      - 03-evaluation.ipynb
+  
+  - name: data
+    type: directory
+    description: Raw and processed data (gitignored)
+    files:
+      - raw/
+      - processed/
+      - README.md
+  
+  - name: experiments
+    type: directory
+    description: Training experiments
+    files:
+      - README.md
+  
+  - name: models
+    type: directory
+    description: Trained models (gitignored or LFS)
+    files:
+      - README.md
+  
+  - name: configs
+    type: directory
+    description: YAML configurations
+    files:
+      - default.yaml
+      - train.yaml
+      - eval.yaml
+  
+  - name: tests
+    type: directory
+    description: Unit tests
+  
+  - name: requirements.txt
+    type: file
+    description: Dependencies
+  
+  - name: requirements-dev.txt
+    type: file
+    description: Development dependencies
+  
+  - name: Makefile
+    type: file
+    description: Common commands
+  
+  - name: dvc.yaml
+    type: file
+    description: DVC pipeline (data versioning)
+  
+  - name: .dvcignore
+    type: file
+    description: DVC ignore patterns
+
+ml_stack:
+  deep_learning:
+    - PyTorch: Deep learning framework
+    - torchvision / transformers: Pretrained models
+    - lightning: Training framework (optional)
+  classical_ml:
+    - scikit-learn: Classical ML algorithms
+    - xgboost / lightgbm: Gradient boosting
+  data:
+    - pandas: Data manipulation
+    - numpy: Numerical computing
+    - polars: Fast DataFrames (optional)
+  visualization:
+    - matplotlib: Plotting
+    - seaborn: Statistical visualization
+    - plotly: Interactive plots
+  experiment_tracking:
+    - weights & biases (wandb): Experiment tracking
+    - mlflow: Model management
+    - tensorboard: Visualization
+
+dev_tools:
+  - pytest: Testing
+  - black / ruff: Code quality
+  - jupyter: Notebooks
+  - dvc: Data versioning
+  - pre-commit: Git hooks
+
+commands:
+  train: python src/training/train.py --config configs/train.yaml
+  evaluate: python src/evaluation/evaluate.py --model models/best.pt
+  predict: python src/inference/predict.py --image path/to/image.jpg
+  notebook: jupyter notebook
+  track: wandb login
+  data-version: dvc push
+
+best_practices:
+  - Version control for data (DVC) / تحكم بالإصدار للبيانات
+  - Reproducible experiments / تجارب قابلة للإعادة
+  - Experiment tracking / تتبع التجارب
+  - Model cards / بطاقات النماذج
+  - Data documentation / توثيق البيانات
+
+deployment:
+  - FastAPI: Model serving API
+  - TorchServe: PyTorch model serving
+  - ONNX Runtime: Optimized inference
+  - Cloud: SageMaker, Vertex AI, Azure ML
+  - Edge: ONNX, TensorRT, OpenVINO
+
+github_actions:
+  - name: ML Pipeline
+    on: [push]
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - run: pip install -r requirements-dev.txt
+          - run: pytest tests/
+          - run: python -m pytest src/ --cov
+      
+      train:
+        needs: test
+        runs-on: gpu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - run: pip install -r requirements.txt
+          - run: python src/training/train.py
+          - uses: actions/upload-artifact@v4
+            with:
+              name: model
+              path: models/

@@ -1,0 +1,12 @@
+# Vector Embeddings for Semantic Search
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# HTTP client for LLM APIs
+httpx>=0.25.0
+
+# GitHub integration
+PyGithub>=2.1.0
+
+# Additional utilities
+python-dateutil>=2.8.0

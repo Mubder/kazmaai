@@ -26,9 +26,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from core.storage.sqlite_backend import SQLiteStorageManager
 from core.events import EventBus, Event, EventType, agent_response_event
 from core.localization import get_ui_string, is_arabic_text
+from core.llm import LLMProvider
 from projects.workspace import ProjectWorkspace
-from memory.manager import MemoryManager, SelfImprovementEngine
-
+from memory.manager import MemoryManager
+from main import KazmaAI
 
 class KazmaAI:
     """
@@ -75,7 +76,11 @@ class KazmaAI:
             event_bus=self.event_bus,
         )
         
+        # Initialize LLM provider
+        self.llm = LLMProvider(self.storage.config.get('models', {}))
+        
         # Initialize self-improvement engine
+        from memory.manager import SelfImprovementEngine
         self.improvement_engine = SelfImprovementEngine(
             memory_manager=self.memory,
             storage_manager=self.storage,
@@ -207,12 +212,16 @@ class KazmaAI:
             priority=10,
         ))
         
-        # TODO: Process message through LLM
-        # For now, return a placeholder response
-        if language == 'ar':
-            response = f"مرحباً! تلقیت رسالتك: '{message}'. سأقوم بالرد قريباً."
-        else:
-            response = f"Hello! I received your message: '{message}'. I'll respond soon."
+        # Process through LLM
+        try:
+            response_text = await self.llm.chat(message, conversation_id)
+            response = response_text.content
+        except Exception as e:
+            # Fallback response
+            if language == 'ar':
+                response = f"عذراً، حدث خطأ: {e}\nسأقوم بالتحسن قريباً."
+            else:
+                response = f"Sorry, an error occurred: {e}\nI'll improve soon."
         
         # Emit agent response event
         self.event_bus.publish(Event(

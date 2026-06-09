@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazmaAI Projects - كازما أي آي المشاريع</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--surface);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        header h1 {
+            color: var(--primary);
+            font-size: 24px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .project-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .project-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .project-card p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+        
+        .status-archived {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .create-form {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .create-form h2 {
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group button {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .form-group button:hover {
+            background: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>📁 KazmaAI Projects / مشاريع كازما أي آي</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <nav class="nav">
+            <a href="/chat">💬 Chat / دردشة</a>
+            <a href="/projects" class="active">📁 Projects / المشاريع</a>
+            <a href="/create">🎨 Create / إبداع</a>
+            <a href="/status">📊 Status / الحالة</a>
+        </nav>
+        
+        <div class="create-form">
+            <h2>✨ Create New Project / إنشاء مشروع جديد</h2>
+            <form id="createProjectForm">
+                <div class="form-group">
+                    <label for="name">Project Name / اسم المشروع</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description / الوصف</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit">Create Project / إنشاء المشروع</button>
+                </div>
+            </form>
+        </div>
+        
+        <h2 style="margin-bottom: 16px;">📋 All Projects / جميع المشاريع</h2>
+        
+        <div class="projects-grid" id="projectsGrid">
+            {% if projects %}
+                {% for project in projects %}
+                <div class="project-card">
+                    <h3>{{ project.name }}</h3>
+                    <p>{{ project.description or 'No description' }}</p>
+                    <div class="project-meta">
+                        <span class="status-badge status-{{ project.status }}">
+                            {{ project.status }}
+                        </span>
+                        <span>📝 {{ project.tasks }} tasks</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="project-card">
+                    <h3>No projects yet</h3>
+                    <p>Create your first project to get started!</p>
+                    <p style="margin-top: 8px;">
+                        <small>لم يتم إنشاء أي مشاريع بعد. ابدأ بإنشاء مشروعك الأول!</small>
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('createProjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/api/projects/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData).toString(),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Project created! / تم إنشاء المشروع');
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -81,6 +81,10 @@ class KazmaAI:
             storage_manager=self.storage,
         )
         
+        # Interfaces (Phase 2)
+        self.telegram_bot = None
+        self.web_app = None
+        
         # State
         self._running = False
         self._shutdown_event = asyncio.Event()
@@ -116,6 +120,9 @@ class KazmaAI:
         print(f"   Memories: {self.memory.get_stats()['total_memories']}")
         print(f"   Events: {self.event_bus.get_stats()['total_events']}")
         
+        # Start interfaces (Phase 2)
+        await self._start_interfaces()
+        
         # Start event processing loop
         print("\n🔄 Starting event processing loop...")
         await self.event_bus.start_processing()
@@ -135,7 +142,7 @@ class KazmaAI:
         
         # Auto-backup if enabled
         if self.storage.config.get('backup', {}).get('auto_backup', True):
-            print("\n💾 Creating automatic backup...")
+            print(f"💾 Creating automatic backup...")
             from bootstrap import create_snapshot
             try:
                 snapshot_path = create_snapshot(root_path=self.storage.root)
@@ -149,6 +156,27 @@ class KazmaAI:
         self.storage.close()
         
         print("\n👋 KazmaAI stopped.")
+    
+    async def _start_interfaces(self):
+        """Start Telegram and Web interfaces."""
+        import asyncio
+        
+        telegram_config = self.storage.config.get('telegram', {})
+        web_config = self.storage.config.get('web', {})
+        
+        # Start Telegram bot if enabled
+        if telegram_config.get('enabled', False) and telegram_config.get('bot_token'):
+            from interfaces.telegram_bot import run_telegram_bot
+            
+            print("\n📱 Starting Telegram bot...")
+            asyncio.create_task(run_telegram_bot(self, telegram_config))
+        
+        # Start web server if enabled
+        if web_config.get('enabled', False):
+            from interfaces.web import run_web_server
+            
+            print("🌐 Starting web interface...")
+            asyncio.create_task(run_web_server(self, web_config))
     
     # =========================================================================
     # USER INTERFACE METHODS

@@ -16,9 +16,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-from ..core.events import EventBus, EventType, Event
-from ..core.storage.base import BaseStorageManager
-from ..core.localization import is_arabic_text, get_ui_string
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from core.events import EventBus, EventType, Event
+from core.storage.base import BaseStorageManager
+from core.localization import is_arabic_text, get_ui_string
 
 
 @dataclass

@@ -1,0 +1,54 @@
+# Default Project Template / قالب المشروع الافتراضي
+# KazmaAI - Universal Project Structure
+
+name: default
+description: Default project template for KazmaAI
+description_ar: قالب المشروع الافتراضي لكازما أي آي
+
+# Default tasks / المهام الافتراضية
+tasks:
+  - content: "Project setup and initialization"
+    content_ar: "إعداد المشروع والتهيئة"
+    status: "pending"
+    metadata:
+      priority: high
+      
+  - content: "Define project requirements"
+    content_ar: "تحديد متطلبات المشروع"
+    status: "pending"
+    metadata:
+      priority: high
+      
+  - content: "Create initial file structure"
+    content_ar: "إنشاء هيكل الملفات الأولي"
+    status: "pending"
+    metadata:
+      priority: medium
+
+# Default file structure / هيكل الملفات الافتراضي
+structure:
+  - path: "src/"
+    is_directory: true
+    description: "Source code"
+    
+  - path: "tests/"
+    is_directory: true
+    description: "Test files"
+    
+  - path: "docs/"
+    is_directory: true
+    description: "Documentation"
+    
+  - path: "README.md"
+    is_directory: false
+    description: "Project readme"
+    
+  - path: ".gitignore"
+    is_directory: false
+    description: "Git ignore file"
+
+# Default context / السياق الافتراضي
+context:
+  language: auto
+  auto_save: true
+  track_changes: true
